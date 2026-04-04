@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Plus, Search, Pencil, Trash2, DollarSign } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Plus, Search, Pencil, Trash2, DollarSign, Download, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../store/useStore";
 import { Card } from "../components/ui/Card";
@@ -13,7 +13,7 @@ const defaultFormState = { id: '', date: '', amount: '', category: 'Food', type:
 const CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Salary', 'Freelance', 'Other'];
 
 export function TransactionsView() {
-  const { transactions, role, addTransaction, editTransaction, deleteTransaction } = useStore();
+  const { transactions, role, addTransaction, editTransaction, deleteTransaction, sortBy, sortDirection, setSortConfig } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   
@@ -21,14 +21,81 @@ export function TransactionsView() {
   const [formData, setFormData] = useState(defaultFormState);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Virtualization Infinite Scroll State
+  const [displayCount, setDisplayCount] = useState(20);
+  const loaderRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setDisplayCount(prev => prev + 20);
+      }
+    }, { threshold: 0.1 });
+    
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+    
+    return () => {
+      if (loaderRef.current) observer.unobserve(loaderRef.current);
+    };
+  }, []);
+
+  // Reset infinite scroll when filters/sort changes
+  useEffect(() => {
+    setDisplayCount(20);
+  }, [searchTerm, filterType, sortBy, sortDirection]);
+
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
+    let result = transactions.filter(t => {
       const matchSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           t.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchType = filterType === 'all' || t.type === filterType;
       return matchSearch && matchType;
     });
-  }, [transactions, searchTerm, filterType]);
+
+    result.sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === 'amount') {
+        comparison = a.amount - b.amount;
+      } else if (sortBy === 'date') {
+        comparison = new Date(a.date) - new Date(b.date);
+      } else if (sortBy === 'category') {
+        comparison = a.category.localeCompare(b.category);
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return result;
+  }, [transactions, searchTerm, filterType, sortBy, sortDirection]);
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortConfig(column, sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortConfig(column, 'asc');
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredTransactions.length === 0) return;
+    const headers = ['Date', 'Description', 'Category', 'Type', 'Amount'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredTransactions.map(t => 
+        `"${t.date}","${t.description}","${t.category}","${t.type}","${t.amount}"`
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `transactions_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleOpenModal = (t = null) => {
     if (t) {
@@ -61,11 +128,16 @@ export function TransactionsView() {
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Review and manage your financial activity.</p>
         </div>
         
-        {role === 'ADMIN' && (
-          <Button onClick={() => handleOpenModal()} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 dark:shadow-indigo-900/50 px-6 rounded-xl font-semibold">
-            <Plus className="mr-2 h-4 w-4" /> Add Transaction
+        <div className="flex gap-3">
+          <Button onClick={handleExportCSV} variant="outline" className="w-full sm:w-auto shadow-sm px-4 rounded-xl font-semibold border-slate-200 dark:border-white/10 dark:text-slate-200">
+            <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
-        )}
+          {role === 'ADMIN' && (
+            <Button onClick={() => handleOpenModal()} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 dark:shadow-indigo-900/50 px-6 rounded-xl font-semibold">
+              <Plus className="mr-2 h-4 w-4" /> Add Transaction
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card className="p-0 overflow-hidden shadow-xl shadow-slate-200/40 dark:shadow-black/40">
@@ -94,17 +166,23 @@ export function TransactionsView() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs uppercase bg-slate-50/80 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-100 dark:border-white/5">
               <tr>
-                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('date')}>
+                  <div className="flex items-center gap-1">Date {sortBy === 'date' && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3"/>)}</div>
+                </th>
                 <th className="px-6 py-4">Description</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4 text-right">Amount</th>
+                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors" onClick={() => handleSort('category')}>
+                  <div className="flex items-center gap-1">Category {sortBy === 'category' && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3"/>)}</div>
+                </th>
+                <th className="px-6 py-4 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-right" onClick={() => handleSort('amount')}>
+                  <div className="flex items-center justify-end gap-1">Amount {sortBy === 'amount' && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3"/>)}</div>
+                </th>
                 {role === 'ADMIN' && <th className="px-6 py-4 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="bg-white/40 dark:bg-transparent divide-y divide-slate-100 dark:divide-white/5">
               <AnimatePresence>
                 {filteredTransactions.length > 0 ? (
-                  filteredTransactions.map((t) => (
+                  filteredTransactions.slice(0, displayCount).map((t) => (
                     <motion.tr 
                       key={t.id}
                       initial={{ opacity: 0, y: -5 }}
@@ -158,6 +236,13 @@ export function TransactionsView() {
               </AnimatePresence>
             </tbody>
           </table>
+          {/* Infinite Scroll Intersection Target */}
+          {filteredTransactions.length > displayCount && (
+            <div ref={loaderRef} className="py-6 flex justify-center items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
+              <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
+              Loading deeper history...
+            </div>
+          )}
         </div>
       </Card>
 

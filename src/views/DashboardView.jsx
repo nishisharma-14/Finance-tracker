@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ArrowDownIcon, ArrowUpIcon, Activity, CalendarDays, Wallet } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, Activity, CalendarDays, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
 import { useStore } from "../store/useStore";
@@ -11,7 +11,7 @@ const COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#f43f5e", "#6366f1"
 export function DashboardView() {
   const transactions = useStore((state) => state.transactions);
 
-  const { totalBalance, income, expenses, categoryData, chartData, recentTransactions } = useMemo(() => {
+  const { totalBalance, income, expenses, incomeChange, expenseChange, categoryData, chartData, recentTransactions, dailyBurnRate, runwayDays } = useMemo(() => {
     let inc = 0, exp = 0;
     const catMap = {};
     const dateMap = {};
@@ -41,10 +41,58 @@ export function DashboardView() {
       return dataPoint;
     }).reverse();
 
+    const thisMonth = new Date().getMonth();
+    const thisYear = new Date().getFullYear();
+    let thisMonthIncome = 0; let lastMonthIncome = 0;
+    let thisMonthExpense = 0; let lastMonthExpense = 0;
+
+    transactions.forEach(t => {
+      const amt = Number(t.amount);
+      const d = new Date(t.date);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+
+      if (m === thisMonth && y === thisYear) {
+        if (t.type === 'income') thisMonthIncome += amt;
+        if (t.type === 'expense') thisMonthExpense += amt;
+      }
+      
+      const lM = thisMonth === 0 ? 11 : thisMonth - 1;
+      const lY = thisMonth === 0 ? thisYear - 1 : thisYear;
+      if (m === lM && y === lY) {
+        if (t.type === 'income') lastMonthIncome += amt;
+        if (t.type === 'expense') lastMonthExpense += amt;
+      }
+    });
+
+    const getPercentChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return (((current - previous) / previous) * 100).toFixed(1);
+    };
+
+    // --- Predictive Analytics Logic ---
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    let minDate = Date.now();
+    let maxDate = Date.now();
+    
+    if (transactions.length > 0) {
+      minDate = Math.min(...transactions.map(t => new Date(t.date).getTime()));
+      maxDate = Math.max(...transactions.map(t => new Date(t.date).getTime()));
+    }
+    
+    // Calculate total days of activity, min 1
+    const daysActive = Math.max(1, Math.ceil((maxDate - minDate) / MS_PER_DAY));
+    const burn = exp / daysActive;
+    const runway = burn > 0 ? ((inc - exp) / burn) : null;
+
     return {
       totalBalance: inc - exp,
       income: inc,
       expenses: exp,
+      incomeChange: getPercentChange(thisMonthIncome, lastMonthIncome),
+      expenseChange: getPercentChange(thisMonthExpense, lastMonthExpense),
+      dailyBurnRate: burn,
+      runwayDays: runway,
       categoryData: cats,
       chartData: orderedChartData.length ? orderedChartData : [{ date: "No data", balance: 0 }],
       recentTransactions: transactions.slice(0, 5)
@@ -100,8 +148,9 @@ export function DashboardView() {
             </CardHeader>
             <CardContent className="pt-4 md:pt-6 pb-4">
               <div className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-heading break-words">{formatCurrency(income)}</div>
-              <div className="text-xs md:text-sm font-semibold text-emerald-600 mt-4 flex items-center gap-1.5 bg-emerald-500/10 w-fit px-3 py-1 rounded-full border border-emerald-500/20">
-                <Activity className="h-3 w-3 md:h-3.5 md:w-3.5" /> Optimal threshold
+              <div className={`text-xs md:text-sm font-semibold mt-4 flex items-center gap-1.5 w-fit px-3 py-1 rounded-full border ${incomeChange >= 0 ? "text-emerald-600 bg-emerald-500/10 border-emerald-500/20" : "text-rose-600 bg-rose-500/10 border-rose-500/20"}`}>
+                {incomeChange >= 0 ? <TrendingUp className="h-3 w-3 md:h-3.5 md:w-3.5" /> : <TrendingDown className="h-3 w-3 md:h-3.5 md:w-3.5" />}
+                {incomeChange >= 0 ? '+' : ''}{incomeChange}% vs last month
               </div>
             </CardContent>
           </Card>
@@ -120,8 +169,9 @@ export function DashboardView() {
             </CardHeader>
             <CardContent className="pt-4 md:pt-6 pb-4">
               <div className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight font-heading break-words">{formatCurrency(expenses)}</div>
-              <div className="text-xs md:text-sm font-semibold text-rose-600 mt-4 flex items-center gap-1.5 bg-rose-500/10 w-fit px-3 py-1 rounded-full border border-rose-500/20">
-                <Activity className="h-3 w-3 md:h-3.5 md:w-3.5" /> Monitored decay
+              <div className={`text-xs md:text-sm font-semibold mt-4 flex items-center gap-1.5 w-fit px-3 py-1 rounded-full border ${expenseChange <= 0 ? "text-emerald-600 bg-emerald-500/10 border-emerald-500/20" : "text-rose-600 bg-rose-500/10 border-rose-500/20"}`}>
+                {expenseChange <= 0 ? <TrendingDown className="h-3 w-3 md:h-3.5 md:w-3.5" /> : <TrendingUp className="h-3 w-3 md:h-3.5 md:w-3.5" />}
+                {expenseChange >= 0 ? '+' : ''}{expenseChange}% vs last month
               </div>
             </CardContent>
           </Card>
@@ -236,11 +286,12 @@ export function DashboardView() {
               </div>
 
               <div className="space-y-1">
-                <div className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">System Observation</div>
+                <div className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Activity className="w-3.5 h-3.5"/> Predictive Runway</div>
                 <div className="text-lg font-semibold text-slate-700 dark:text-slate-200">
-                  {transactions.length > 5
-                    ? `Consistent activity detected with ${transactions.length} total recorded events in your ledger.`
-                    : "System warming up. Awaiting more ledger events."}
+                  {runwayDays === null || runwayDays < 0
+                    ? "Infinite runway. System sustained."
+                    : <>Burn rate <b>{formatCurrency(dailyBurnRate)}/day</b>. Est. zero balance in <span className={runwayDays < 30 ? "text-rose-500 font-extrabold" : "text-emerald-500 font-extrabold"}>{Math.floor(runwayDays)} days</span>.</>
+                  }
                 </div>
               </div>
             </div>

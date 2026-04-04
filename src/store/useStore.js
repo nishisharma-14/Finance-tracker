@@ -18,6 +18,8 @@ export const useStore = create(
       transactions: initialTransactions,
       role: 'VIEWER', // 'VIEWER' or 'ADMIN'
       theme: 'light', // 'light' or 'dark'
+      sortBy: 'date',
+      sortDirection: 'desc',
       
       addTransaction: (transaction) => set((state) => ({
         transactions: [{ ...transaction, id: crypto.randomUUID() }, ...state.transactions]
@@ -31,6 +33,7 @@ export const useStore = create(
         transactions: state.transactions.filter((t) => t.id !== id)
       })),
 
+      setSortConfig: (sortBy, sortDirection) => set({ sortBy, sortDirection }),
       setRole: (role) => set({ role }),
       toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
     }),
