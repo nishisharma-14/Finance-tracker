@@ -90,7 +90,7 @@ export function SettingsView() {
                 </div>
                 <button 
                   onClick={toggleTheme}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${theme === 'dark' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                  className={`shrink-0 ml-4 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${theme === 'dark' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
@@ -104,7 +104,7 @@ export function SettingsView() {
                 <button 
                   onClick={() => setThemeStyle(themeStyle === 'oled' ? 'standard' : 'oled')}
                   disabled={theme !== 'dark'}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${themeStyle === 'oled' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'} ${theme !== 'dark' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`shrink-0 ml-4 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${themeStyle === 'oled' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'} ${theme !== 'dark' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${themeStyle === 'oled' ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
@@ -117,7 +117,7 @@ export function SettingsView() {
                 </div>
                 <button 
                   onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notificationsEnabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                  className={`shrink-0 ml-4 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notificationsEnabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>

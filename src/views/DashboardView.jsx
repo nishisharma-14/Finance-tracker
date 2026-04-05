@@ -230,7 +230,7 @@ export function DashboardView() {
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={10} fontFamily="Plus Jakarta Sans" minTickGap={30} />
-                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} fontFamily="Plus Jakarta Sans" />
+                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} width={45} tickFormatter={(v) => v >= 1000 || v <= -1000 ? `$${v/1000}k` : `$${v}`} fontFamily="Plus Jakarta Sans" />
                    <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.6)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.3)', borderRadius: '16px', color: '#0f172a', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
                     itemStyle={{ color: '#0f172a', fontWeight: 'bold', fontFamily: 'Outfit' }}
