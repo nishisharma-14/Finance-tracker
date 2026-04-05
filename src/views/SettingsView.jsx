@@ -83,41 +83,41 @@ export function SettingsView() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-row items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <Label className="text-base text-slate-800 dark:text-slate-200">Dark Mode Theme</Label>
                   <p className="text-sm text-slate-500 mt-1">Toggle the application visual theme.</p>
                 </div>
                 <button 
                   onClick={toggleTheme}
-                  className={`shrink-0 ml-4 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${theme === 'dark' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                  className={`shrink-0 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${theme === 'dark' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-row items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <Label className="text-base text-slate-800 dark:text-slate-200">OLED Midnight Mode</Label>
                   <p className="text-sm text-slate-500 mt-1">True black background for OLED screens (requires Dark Mode).</p>
                 </div>
                 <button 
                   onClick={() => setThemeStyle(themeStyle === 'oled' ? 'standard' : 'oled')}
                   disabled={theme !== 'dark'}
-                  className={`shrink-0 ml-4 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${themeStyle === 'oled' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'} ${theme !== 'dark' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`shrink-0 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${themeStyle === 'oled' ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'} ${theme !== 'dark' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${themeStyle === 'oled' ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-row items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   <Label className="text-base text-slate-800 dark:text-slate-200">Push Notifications</Label>
                   <p className="text-sm text-slate-500 mt-1">Receive system alerts for high expenditure.</p>
                 </div>
                 <button 
                   onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                  className={`shrink-0 ml-4 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notificationsEnabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                  className={`shrink-0 relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${notificationsEnabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
                 >
                   <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm ${notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
