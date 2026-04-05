@@ -7,7 +7,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Input, Select, Label } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
-import { formatCurrency, formatDate, cn } from "../lib/utils";
+import { formatCurrency, formatDate, cn, getTransactionBrand } from "../lib/utils";
 
 const defaultFormState = { id: '', date: '', amount: '', category: 'Food', type: 'expense', description: '' };
 const CATEGORIES = ['Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Salary', 'Freelance', 'Other'];
@@ -16,10 +16,10 @@ export function TransactionsView() {
   const { transactions, role, addTransaction, editTransaction, deleteTransaction, sortBy, sortDirection, setSortConfig } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState(defaultFormState);
   const [isEditing, setIsEditing] = useState(false);
+  const [dateRange, setDateRange] = useState('all');
 
   // Virtualization Infinite Scroll State
   const [displayCount, setDisplayCount] = useState(20);
@@ -47,11 +47,24 @@ export function TransactionsView() {
   }, [searchTerm, filterType, sortBy, sortDirection]);
 
   const filteredTransactions = useMemo(() => {
+    const now = new Date();
     let result = transactions.filter(t => {
       const matchSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           t.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchType = filterType === 'all' || t.type === filterType;
-      return matchSearch && matchType;
+      
+      let matchDate = true;
+      if (dateRange === 'thisMonth') {
+        const tDate = new Date(t.date);
+        matchDate = tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+      } else if (dateRange === 'past30') {
+        const tDate = new Date(t.date);
+        const diffTime = Math.abs(now - tDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        matchDate = diffDays <= 30;
+      }
+      
+      return matchSearch && matchType && matchDate;
     });
 
     result.sort((a, b) => {
@@ -67,7 +80,7 @@ export function TransactionsView() {
     });
 
     return result;
-  }, [transactions, searchTerm, filterType, sortBy, sortDirection]);
+  }, [transactions, searchTerm, filterType, sortBy, sortDirection, dateRange]);
 
   const handleSort = (column) => {
     if (sortBy === column) {
@@ -182,7 +195,10 @@ export function TransactionsView() {
             <tbody className="bg-white/40 dark:bg-transparent divide-y divide-slate-100 dark:divide-white/5">
               <AnimatePresence>
                 {filteredTransactions.length > 0 ? (
-                  filteredTransactions.slice(0, displayCount).map((t) => (
+                  filteredTransactions.slice(0, displayCount).map((t) => {
+                    const brand = getTransactionBrand(t.description, t.category);
+                    const BrandIcon = brand.icon;
+                    return (
                     <motion.tr 
                       key={t.id}
                       initial={{ opacity: 0, y: -5 }}
@@ -191,7 +207,14 @@ export function TransactionsView() {
                       className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-slate-500 dark:text-slate-400 font-medium">{formatDate(t.date)}</td>
-                      <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">{t.description}</td>
+                      <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg border ${brand.bg} ${brand.color} ${brand.border}`}>
+                            <BrandIcon className="w-4 h-4" />
+                          </div>
+                          <span>{t.description}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4">
                         <Badge variant="secondary" className={cn(
                           "border-none font-medium px-2.5 py-1",
@@ -221,14 +244,18 @@ export function TransactionsView() {
                         </td>
                       )}
                     </motion.tr>
-                  ))
+                  );
+                 })
                 ) : (
                   <tr>
-                    <td colSpan={role === 'ADMIN' ? 5 : 4} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center">
-                        <Search className="h-8 w-8 text-slate-300 dark:text-slate-600 mb-3" />
-                        <p className="text-slate-500 dark:text-slate-400 font-medium">No transactions found.</p>
-                        <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Try adjusting your filters or search term.</p>
+                    <td colSpan={role === 'ADMIN' ? 5 : 4} className="px-6 py-16 xl:py-24 text-center">
+                      <div className="flex flex-col items-center justify-center opacity-60">
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
+                            <svg className="w-20 h-20 text-slate-400 drop-shadow-lg relative" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                        </div>
+                        <p className="text-slate-600 dark:text-slate-300 font-bold text-lg font-heading tracking-wide">No transactions found</p>
+                        <p className="text-slate-400 dark:text-slate-500 text-sm mt-1 max-w-xs font-medium">Try widening your date range or adjusting your search filters.</p>
                       </div>
                     </td>
                   </tr>

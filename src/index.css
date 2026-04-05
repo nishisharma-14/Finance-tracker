@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Thick Glass Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  border: 2px solid transparent; 
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(148, 163, 184, 0.5);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
 @layer base {
   :root {
     --brand-50: #f8fafc;
@@ -21,14 +45,100 @@
     --font-heading: 'Outfit', sans-serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
+
+  /* Dynamic Accent Colors Configuration (RGB components for full tailwind opacity support) */
+  :root, :root[data-accent="indigo"] {
+    --primary-50: 238 242 255;
+    --primary-100: 224 231 255;
+    --primary-400: 129 140 248;
+    --primary-500: 99 102 241;
+    --primary-600: 79 70 229;
+  }
+  
+  :root[data-accent="emerald"] {
+    --primary-50: 236 253 245;
+    --primary-100: 209 250 229;
+    --primary-400: 52 211 153;
+    --primary-500: 16 185 129;
+    --primary-600: 5 150 105;
+  }
+
+  :root[data-accent="rose"] {
+    --primary-50: 255 241 242;
+    --primary-100: 255 228 230;
+    --primary-400: 251 113 133;
+    --primary-500: 244 63 94;
+    --primary-600: 225 29 72;
+  }
+
+  :root[data-accent="amber"] {
+    --primary-50: 255 251 235;
+    --primary-100: 254 243 199;
+    --primary-400: 251 191 36;
+    --primary-500: 245 158 11;
+    --primary-600: 217 119 6;
+  }
+}
+
+/* Advanced Card Physics */
+.tilt-card {
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.tilt-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  z-index: 10;
+}
+
+/* Rotating SVG-like Glowing Border Container */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-gradient {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.glowing-border {
+  position: relative;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+.glowing-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px; /* Border thickness */
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), transparent, transparent, #10b981, #4f46e5, transparent, transparent);
+  animation: spin-gradient 6s linear infinite;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* Only make the glow visible on desktop (since mobiles shouldn't run thick animation loops) */
+@media (min-width: 768px) {
+  .glowing-border::before {
+    opacity: 0.8;
+  }
 }
 
 body {
   background-color: #f8fafc;
   background-image: 
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,0.03) 0px, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.03) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(var(--primary-600) / 0.06) 0px, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(var(--primary-400) / 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(var(--primary-500) / 0.06) 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--brand-900);
   font-family: var(--font-sans);
@@ -40,9 +150,9 @@ body {
 body.dark {
   background-color: #020617;
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.15), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(225, 29, 72, 0.1), transparent 25%),
-    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.15), transparent 30%);
+    radial-gradient(circle at 15% 50%, rgba(var(--primary-600) / 0.15), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(var(--primary-400) / 0.1), transparent 25%),
+    radial-gradient(circle at 50% 80%, rgba(var(--primary-500) / 0.15), transparent 30%);
   color: #f8fafc;
 }
 
@@ -96,14 +206,35 @@ body.dark {
 
   .dark .glass-card:hover {
     background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.4));
-    border-color: rgba(99, 102, 241, 0.3);
+    border-color: rgba(var(--primary-500) / 0.3);
     box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  /* OLED Deep Black Overrides */
+  body.dark.oled {
+    background-color: #000000;
+  }
+  
+  .dark.oled .glass-panel {
+    background: rgba(5, 5, 5, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  }
+
+  .dark.oled .glass-card {
+    background: linear-gradient(135deg, rgba(15, 15, 15, 0.5), rgba(0, 0, 0, 0.3));
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7);
+  }
+
+  .dark.oled .glass-card:hover {
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.6), rgba(5, 5, 5, 0.4));
   }
 
   /* Smooth gradient text for dark mode */
   .dark-gradient-text {
-    background: linear-gradient(to right, #818cf8, #c084fc);
+    background: linear-gradient(to right, rgb(var(--primary-400)), rgb(var(--primary-600)));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 }
