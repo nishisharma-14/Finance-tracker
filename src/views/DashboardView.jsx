@@ -216,7 +216,7 @@ export function DashboardView() {
             </CardHeader>
             <CardContent className="h-[300px] md:h-[400px] w-full pt-8 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="splitColor" x1="0" y1="0" x2="0" y2="1">
                       <stop offset={gradientOffset} stopColor="#10b981" stopOpacity={0.8} />
@@ -257,7 +257,7 @@ export function DashboardView() {
         {/* Dense Activity View */}
         <motion.div className="lg:col-span-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <Card className="glass-card h-full flex flex-col">
-            <CardHeader className="flex flex-row justify-between items-center bg-white/40 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-700/50 pb-4 mb-2 rounded-t-3xl">
+            <CardHeader className="flex flex-row justify-between items-center pb-0 mt-2 mb-2">
               <CardTitle className="text-xl text-slate-800 dark:text-slate-100 tracking-wide font-heading font-bold flex items-center gap-2.5">
                 <div className="p-1.5 rounded-lg bg-primary-100 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 border border-primary-200/50 dark:border-primary-500/20 shadow-sm backdrop-blur-md">
                   <History className="w-4 h-4 md:w-5 md:h-5" />
@@ -271,19 +271,19 @@ export function DashboardView() {
                   const brand = getTransactionBrand(t.description, t.category);
                   const Icon = brand.icon;
                   return (
-                  <div key={t.id} className="group flex items-center justify-between p-3 rounded-2xl bg-white/30 dark:bg-slate-800/30 hover:bg-white/60 dark:hover:bg-slate-700/50 backdrop-blur-md transition-all border border-white/20 dark:border-white/5 hover:border-white/60 dark:hover:border-white/20 shadow-sm cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl backdrop-blur-sm border ${brand.bg} ${brand.color} ${brand.border}`}>
+                  <div key={t.id} className="group flex flex-row items-center justify-between p-3 rounded-2xl bg-white/30 dark:bg-slate-800/30 hover:bg-white/60 dark:hover:bg-slate-700/50 backdrop-blur-md transition-all border border-white/20 dark:border-white/5 hover:border-white/60 dark:hover:border-white/20 shadow-sm cursor-pointer gap-2">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className={`p-2.5 rounded-xl backdrop-blur-sm border shrink-0 ${brand.bg} ${brand.color} ${brand.border}`}>
                         <Icon className="w-4 h-4" />
                       </div>
-                      <div>
-                        <div className="font-bold text-slate-800 dark:text-slate-100 font-heading text-sm">{t.description}</div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
-                          <CalendarDays className="w-3 h-3" /> {formatDate(t.date)}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-slate-800 dark:text-slate-100 font-heading text-sm truncate">{t.description}</div>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap mt-0.5 mt-auto">
+                          <CalendarDays className="w-3 h-3 shrink-0" /> <span className="truncate">{formatDate(t.date)}</span>
                         </div>
                       </div>
                     </div>
-                    <div className={`text-sm font-black font-heading ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                    <div className={`text-sm md:text-base font-black font-heading whitespace-nowrap shrink-0 ml-2 ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
                       {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                     </div>
                   </div>
