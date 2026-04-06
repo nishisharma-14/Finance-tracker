@@ -92,19 +92,23 @@ export function Layout({ children, activeTab, onTabSelect }) {
           <h1 className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white">
             Vault<span className="text-primary-500 dark:text-primary-400">Fi</span>
           </h1>
-          <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className="p-2 rounded-full">
+          <div className="flex items-center gap-3">
+            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-500" /> : <Moon className="h-5 w-5 text-primary-500" />}
             </button>
-            <select 
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="bg-transparent text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none"
-              style={{ backgroundColor: theme === 'dark' ? '#1e293b' : 'transparent' }}
-            >
-              <option value="VIEWER">Viewer</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <div className="relative">
+              <select 
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="appearance-none bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300 text-xs font-black uppercase tracking-widest pl-3 pr-8 py-1.5 rounded-lg border border-primary-200 dark:border-primary-500/30 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="VIEWER" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Viewer</option>
+                <option value="ADMIN" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white">Admin</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-primary-600 dark:text-primary-400">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
           </div>
         </div>
         
