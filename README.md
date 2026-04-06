@@ -37,11 +37,3 @@ npm run dev
 npm run build
 ```
 
-## 🔍 Meeting the Evaluation Criteria
-
-1. **Dashboard Overview:** The main dashboard features a Balance Trend (Area Chart) and a Spending Breakdown (Doughnut Chart/Ratio) alongside summary balances.
-2. **Transactions Section:** The Transactions view handles 50+ mock entries with deep search capability, dynamic CSV export, and sorting capabilities.
-3. **Role-Based UI:** The Access Level toggle in the sidebar switches from `VIEWER` to `ADMIN`. Turning on Admin mode dynamically unlocks the "Add Transaction" modal UI in the transactions page.
-4. **Insights Section:** The "Smart Wealth Analytics" pane calculates absolute runway duration and cash flow ratio. 
-5. **State Management:** `useStore.js` demonstrates professional global state mapping.
-6. **Edge Cases**: Zero-balance states, extremely long textual truncations, negative runway mathematics, and infinite scrolling virtualization are all defensively handled.
